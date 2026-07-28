@@ -66,7 +66,8 @@ public final class EssentialsCorePlugin extends JavaPlugin {
         sits = new SitManager(this, messages);
         lays = new LayManager(messages);
         trash = new TrashManager(this, messages);
-        MenuManager menus = new MenuManager(this, messages, settings, homes, tpa, ranks, pets, input, warps);
+        MenuManager menus = new MenuManager(this, messages, settings, homes, tpa, ranks, pets, input, warps,
+                nameTags, store);
 
         getServer().getPluginManager().registerEvents(input, this);
         getServer().getPluginManager().registerEvents(teleports, this);
@@ -74,7 +75,7 @@ public final class EssentialsCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(pets, this);
         getServer().getPluginManager().registerEvents(sits, this);
         getServer().getPluginManager().registerEvents(lays, this);
-        getServer().getPluginManager().registerEvents(new ExperimentalFeatureListener(settings, messages), this);
+        getServer().getPluginManager().registerEvents(new ExperimentalFeatureListener(this, settings, messages), this);
         getServer().getPluginManager().registerEvents(trash, this);
         getServer().getPluginManager().registerEvents(new RankDisplayListener(ranks), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, menus, homes, tpa, pets, settings,
@@ -99,7 +100,7 @@ public final class EssentialsCorePlugin extends JavaPlugin {
         bind("trash", new TrashCommand(trash, messages), null);
         WarpCommand warpCommand = new WarpCommand(warps, menus, messages);
         bind("warp", warpCommand, warpCommand);
-        RankCommand rankCommand = new RankCommand(ranks, store, messages, nameTags);
+        RankCommand rankCommand = new RankCommand(ranks, store, messages, nameTags, menus);
         bind("rank", rankCommand, rankCommand);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {

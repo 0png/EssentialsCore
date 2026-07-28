@@ -18,7 +18,7 @@ $env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot'
 .\gradlew.bat clean build
 ```
 
-成品位於 `build/libs/EssentialsCore-1.3.0.jar`。將 JAR 放進 Paper
+成品位於 `build/libs/EssentialsCore-1.4.0.jar`。將 JAR 放進 Paper
 伺服器的 `plugins` 資料夾並重新啟動伺服器。
 
 ## 玩家指令
@@ -35,7 +35,7 @@ $env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot'
 - `/warp [名稱]`：開啟公共 Warp GUI 或直接傳送
 - `/trash`：開啟安全垃圾桶；關閉會退回物品，只有確認按鈕會永久刪除
 - `/ec help`：開啟雙語指令說明 GUI
-- `/rank`：查看自己的 Rank
+- `/rank`：開啟 Rank 資訊 GUI；OP 可進入完整 Rank 管理介面
 
 Rank 前綴也會顯示在一般聊天玩家名稱前及玩家頭頂 nametag。若伺服器另有會管理
 scoreboard team 的 nametag 插件，該插件可能覆蓋 EssentialsCore 的頭頂前綴。
@@ -48,6 +48,7 @@ scoreboard team 的 nametag 插件，該插件可能覆蓋 EssentialsCore 的頭
 
 - `/ec admin`：Home、TPA、Pet Protection、Warp 與趣味實驗功能設定 GUI
 - 趣味與實驗頁：切換萬用拴繩及空手 Shift 右鍵寵物的愛心互動
+- 直接牽在玩家身上的生物會跟隨玩家傳送並重新綁上；綁在 Fence 上的生物不會跟隨
 - Warp 管理 GUI：建立、改名、更新位置、修改圖示、確認刪除及傳送參數
 - Home 設定頁可即時調整每位玩家的 Home 數量上限（1–100）
 - `/rank create <id> <顯示名稱>`
@@ -57,6 +58,9 @@ scoreboard team 的 nametag 插件，該插件可能覆蓋 EssentialsCore 的頭
 - `/rank delete <id> confirm`
 - `/rank list`
 - `/rank info [玩家]`
+
+Rank 管理 GUI 支援建立、修改顯示名稱／MiniMessage 前綴／顏色、設定預設 Rank、
+確認刪除，以及從曾加入伺服器的玩家清單中指派 Rank。原有管理子指令仍然保留。
 
 ## PlaceholderAPI
 

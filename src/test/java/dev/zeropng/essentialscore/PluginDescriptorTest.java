@@ -26,7 +26,7 @@ class PluginDescriptorTest {
         assertEquals(Set.of("ec", "home", "sethome", "tpa", "tpahere", "tpaccept", "tpdeny",
                 "pet", "sit", "lay", "hat", "back", "trash", "warp", "rank"), commands.keySet());
         assertFalse(commands.containsKey("rtp"));
-        assertEquals("1.3.0", yaml.get("version"));
+        assertEquals("1.4.0", yaml.get("version"));
         assertEquals("26.2", yaml.get("api-version"));
         assertTrue(((List<?>) yaml.get("softdepend")).contains("PlaceholderAPI"));
     }

@@ -26,6 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class GuiListener implements Listener {
     private final JavaPlugin plugin;
@@ -68,7 +69,12 @@ public final class GuiListener implements Listener {
             case PLAYER_SELECT_TPA -> playerSelect(player, holder.page(), slot, TpaType.TO_TARGET);
             case PLAYER_SELECT_TPAHERE -> playerSelect(player, holder.page(), slot, TpaType.HERE);
             case REQUESTS -> requests(player, holder.page(), slot, event.isRightClick());
-            case RANK_INFO -> { if (slot == 22) later(() -> menus.openMain(player)); }
+            case RANK_INFO -> rankInfo(player, slot);
+            case RANK_LIST -> rankList(player, holder.page(), slot);
+            case RANK_EDIT -> rankEdit(player, holder, slot);
+            case RANK_DELETE -> rankDelete(player, holder, slot);
+            case RANK_PLAYERS -> rankPlayers(player, holder.page(), slot);
+            case RANK_ASSIGN -> rankAssign(player, holder, slot);
             case PETS -> pet(player, holder.page(), slot);
             case WARP -> warp(player, holder.page(), slot);
             case HELP -> { if (slot == 22) later(() -> menus.openMain(player)); }
@@ -214,6 +220,93 @@ public final class GuiListener implements Listener {
         }
     }
 
+    private void rankInfo(Player player, int slot) {
+        if (slot == 20 && player.isOp()) later(() -> menus.openRankList(player, 0));
+        else if (slot == 22) later(() -> menus.openMain(player));
+    }
+
+    private void rankList(Player player, int page, int slot) {
+        if (!adminAllowed(player)) return;
+        List<dev.zeropng.essentialscore.rank.RankData> list = menus.rankList();
+        int index = page * MenuManager.PAGE_SIZE + slot;
+        if (slot < MenuManager.PAGE_SIZE && index < list.size()) {
+            later(() -> menus.openRankEdit(player, list.get(index).id(), page));
+            return;
+        }
+        switch (slot) {
+            case 45 -> later(() -> menus.openRankList(player, page - 1));
+            case 48 -> later(() -> menus.openRank(player));
+            case 49 -> later(() -> menus.beginCreateRank(player, page));
+            case 50 -> later(() -> menus.openRankPlayers(player, 0));
+            case 53 -> later(() -> menus.openRankList(player, page + 1));
+            default -> { }
+        }
+    }
+
+    private void rankEdit(Player player, MenuHolder holder, int slot) {
+        if (!adminAllowed(player)) return;
+        String id = holder.context();
+        int page = holder.page();
+        switch (slot) {
+            case 10 -> later(() -> menus.beginEditRank(player, id, "name", page));
+            case 12 -> later(() -> menus.beginEditRank(player, id, "prefix", page));
+            case 14 -> later(() -> menus.beginEditRank(player, id, "color", page));
+            case 16 -> later(() -> menus.setDefaultRank(player, id, page));
+            case 20 -> later(() -> menus.openRankDelete(player, id, page));
+            case 22 -> later(() -> menus.openRankList(player, page));
+            default -> { }
+        }
+    }
+
+    private void rankDelete(Player player, MenuHolder holder, int slot) {
+        if (!adminAllowed(player)) return;
+        if (slot == 11) later(() -> menus.openRankEdit(player, holder.context(), holder.page()));
+        else if (slot == 15) later(() -> menus.deleteRank(player, holder.context(), holder.page()));
+    }
+
+    private void rankPlayers(Player player, int page, int slot) {
+        if (!adminAllowed(player)) return;
+        List<MenuManager.RankPlayer> list = menus.rankPlayers();
+        int index = page * MenuManager.PAGE_SIZE + slot;
+        if (slot < MenuManager.PAGE_SIZE && index < list.size()) {
+            MenuManager.RankPlayer target = list.get(index);
+            later(() -> menus.openRankAssign(player, target.id(), page, 0));
+            return;
+        }
+        switch (slot) {
+            case 45 -> later(() -> menus.openRankPlayers(player, page - 1));
+            case 48 -> later(() -> menus.openRankList(player, 0));
+            case 53 -> later(() -> menus.openRankPlayers(player, page + 1));
+            default -> { }
+        }
+    }
+
+    private void rankAssign(Player player, MenuHolder holder, int slot) {
+        if (!adminAllowed(player)) return;
+        String[] context = holder.context().split("\\|", 2);
+        UUID targetId;
+        try {
+            targetId = UUID.fromString(context[0]);
+        } catch (IllegalArgumentException exception) {
+            messages.send(player, "error.no-player");
+            later(() -> menus.openRankPlayers(player, 0));
+            return;
+        }
+        int playerPage = context.length == 2 ? parseInt(context[1], 0) : 0;
+        List<dev.zeropng.essentialscore.rank.RankData> list = menus.rankList();
+        int index = holder.page() * MenuManager.PAGE_SIZE + slot;
+        if (slot < MenuManager.PAGE_SIZE && index < list.size()) {
+            menus.assignRank(player, targetId, list.get(index).id(), playerPage);
+            return;
+        }
+        switch (slot) {
+            case 45 -> later(() -> menus.openRankAssign(player, targetId, playerPage, holder.page() - 1));
+            case 48 -> later(() -> menus.openRankPlayers(player, playerPage));
+            case 53 -> later(() -> menus.openRankAssign(player, targetId, playerPage, holder.page() + 1));
+            default -> { }
+        }
+    }
+
     private boolean adminAllowed(Player player) {
         if (player.isOp()) return true;
         player.closeInventory();
@@ -245,6 +338,7 @@ public final class GuiListener implements Listener {
             case 14 -> later(() -> menus.openAdminWarps(player, 0));
             case 16 -> later(() -> menus.openAdminPet(player));
             case 20 -> later(() -> menus.openAdminExperimental(player));
+            case 24 -> later(() -> menus.openRankList(player, 0));
             case 22 -> later(() -> menus.openMain(player));
             default -> { }
         }

@@ -9,6 +9,8 @@ import dev.zeropng.essentialscore.pet.PetManager;
 import dev.zeropng.essentialscore.pet.PetRecord;
 import dev.zeropng.essentialscore.rank.RankData;
 import dev.zeropng.essentialscore.rank.RankManager;
+import dev.zeropng.essentialscore.rank.NameTagManager;
+import dev.zeropng.essentialscore.storage.DataStore;
 import dev.zeropng.essentialscore.tpa.TpaManager;
 import dev.zeropng.essentialscore.tpa.TpaRequest;
 import dev.zeropng.essentialscore.tpa.TpaType;
@@ -18,6 +20,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class MenuManager {
     public static final int PAGE_SIZE = 45;
@@ -37,19 +41,23 @@ public final class MenuManager {
     private final HomeManager homes;
     private final TpaManager tpa;
     private final RankManager ranks;
+    private final NameTagManager nameTags;
+    private final DataStore store;
     private final PetManager pets;
     private final ChatInputManager input;
     private final WarpManager warps;
 
     public MenuManager(JavaPlugin plugin, MessageService messages, PluginSettings settings,
                        HomeManager homes, TpaManager tpa, RankManager ranks, PetManager pets,
-                       ChatInputManager input, WarpManager warps) {
+                       ChatInputManager input, WarpManager warps, NameTagManager nameTags, DataStore store) {
         this.plugin = plugin;
         this.messages = messages;
         this.settings = settings;
         this.homes = homes;
         this.tpa = tpa;
         this.ranks = ranks;
+        this.nameTags = nameTags;
+        this.store = store;
         this.pets = pets;
         this.input = input;
         this.warps = warps;
@@ -184,9 +192,230 @@ public final class MenuManager {
     public void openRank(Player player) {
         RankData rank = ranks.assigned(player.getUniqueId());
         Inventory menu = createMenu(new MenuHolder(MenuType.RANK_INFO), 27, "menu.rank.title");
-        menu.setItem(13, Items.item(Material.NAME_TAG, rank.displayComponent(), rank.prefixComponent()));
+        menu.setItem(13, rankItem(rank, false));
+        if (player.isOp()) menu.setItem(20, Items.item(Material.COMMAND_BLOCK,
+                messages.component("menu.rank.manage"), messages.component("menu.rank.manage-lore")));
         menu.setItem(22, backItem());
         player.openInventory(menu);
+    }
+
+    public void openRankList(Player player, int requestedPage) {
+        List<RankData> list = rankList();
+        int page = page(requestedPage, list.size());
+        Inventory menu = createMenu(new MenuHolder(MenuType.RANK_LIST, page, ""), 54,
+                "menu.rank.list-title");
+        pageSliceIndexed(list, page).forEachIndexed((slot, rank) -> menu.setItem(slot, rankItem(rank, true)));
+        navigation(menu, page, list.size());
+        menu.setItem(48, backItem());
+        menu.setItem(49, Items.item(Material.LIME_DYE, messages.component("menu.rank.create"),
+                messages.component("menu.rank.create-lore")));
+        menu.setItem(50, Items.item(Material.PLAYER_HEAD, messages.component("menu.rank.players"),
+                messages.component("menu.rank.players-lore")));
+        player.openInventory(menu);
+    }
+
+    public void openRankEdit(Player player, String id, int returnPage) {
+        RankData rank = ranks.get(id);
+        if (rank == null) {
+            messages.send(player, "rank.not-found");
+            openRankList(player, returnPage);
+            return;
+        }
+        Inventory menu = createMenu(new MenuHolder(MenuType.RANK_EDIT, returnPage, rank.id()), 27,
+                "menu.rank.edit-title");
+        menu.setItem(4, rankItem(rank, false));
+        menu.setItem(10, Items.item(Material.NAME_TAG, messages.component("menu.rank.edit-name"),
+                Component.text(rank.displayName()), messages.component("admin.click-edit")));
+        menu.setItem(12, Items.item(Material.PAPER, messages.component("menu.rank.edit-prefix"),
+                rank.prefixComponent(), messages.component("admin.click-edit")));
+        menu.setItem(14, Items.item(Material.LIGHT_BLUE_DYE, messages.component("menu.rank.edit-color"),
+                Component.text(rank.color()), messages.component("admin.click-edit")));
+        boolean isDefault = rank.id().equals(ranks.defaultRank().id());
+        menu.setItem(16, Items.item(isDefault ? Material.NETHER_STAR : Material.YELLOW_DYE,
+                messages.component("menu.rank.set-default"),
+                messages.component(isDefault ? "menu.rank.is-default" : "menu.rank.not-default")));
+        menu.setItem(20, Items.item(Material.RED_CONCRETE, messages.component("menu.rank.delete")));
+        menu.setItem(22, backItem());
+        player.openInventory(menu);
+    }
+
+    public void openRankDelete(Player player, String id, int returnPage) {
+        RankData rank = ranks.get(id);
+        if (rank == null) {
+            messages.send(player, "rank.not-found");
+            openRankList(player, returnPage);
+            return;
+        }
+        if (rank.id().equals(ranks.defaultRank().id())) {
+            messages.send(player, "rank.cannot-delete-default");
+            openRankEdit(player, id, returnPage);
+            return;
+        }
+        Inventory menu = createMenu(new MenuHolder(MenuType.RANK_DELETE, returnPage, rank.id()), 27,
+                "menu.rank.delete-title");
+        menu.setItem(13, rankItem(rank, false));
+        menu.setItem(11, Items.item(Material.LIME_CONCRETE, messages.component("common.back")));
+        menu.setItem(15, Items.item(Material.RED_CONCRETE, messages.component("menu.rank.delete-confirm")));
+        player.openInventory(menu);
+    }
+
+    public void openRankPlayers(Player player, int requestedPage) {
+        List<RankPlayer> list = rankPlayers();
+        int page = page(requestedPage, list.size());
+        Inventory menu = createMenu(new MenuHolder(MenuType.RANK_PLAYERS, page, ""), 54,
+                "menu.rank.players-title");
+        pageSliceIndexed(list, page).forEachIndexed((slot, target) -> {
+            RankData assigned = ranks.assigned(target.id());
+            ItemStack head = Items.item(Material.PLAYER_HEAD, Component.text(target.name()),
+                    messages.component("menu.rank.player-current", Map.of("rank", assigned.displayName())),
+                    messages.component("menu.rank.click-assign"));
+            SkullMeta meta = (SkullMeta) head.getItemMeta();
+            OfflinePlayer offline = Bukkit.getOfflinePlayer(target.id());
+            meta.setOwningPlayer(offline);
+            head.setItemMeta(meta);
+            menu.setItem(slot, head);
+        });
+        if (list.isEmpty()) menu.setItem(22, Items.item(Material.GRAY_DYE,
+                messages.component("menu.rank.no-players")));
+        navigation(menu, page, list.size());
+        menu.setItem(48, backItem());
+        player.openInventory(menu);
+    }
+
+    public void openRankAssign(Player player, UUID targetId, int playerPage, int requestedPage) {
+        String targetName = store.knownPlayers().get(targetId);
+        if (targetName == null) {
+            messages.send(player, "error.no-player");
+            openRankPlayers(player, playerPage);
+            return;
+        }
+        List<RankData> list = rankList();
+        int page = page(requestedPage, list.size());
+        String context = targetId + "|" + playerPage;
+        Inventory menu = createMenu(new MenuHolder(MenuType.RANK_ASSIGN, page, context), 54,
+                "menu.rank.assign-title");
+        pageSliceIndexed(list, page).forEachIndexed((slot, rank) -> menu.setItem(slot,
+                Items.item(Material.NAME_TAG, rank.displayComponent(), rank.prefixComponent(),
+                        messages.component("menu.rank.assign-to", Map.of("player", targetName)))));
+        navigation(menu, page, list.size());
+        menu.setItem(48, backItem());
+        player.openInventory(menu);
+    }
+
+    public List<RankData> rankList() {
+        return ranks.all();
+    }
+
+    public List<RankPlayer> rankPlayers() {
+        Map<UUID, String> known = store.knownPlayers();
+        Bukkit.getOnlinePlayers().forEach(player -> known.put(player.getUniqueId(), player.getName()));
+        return known.entrySet().stream()
+                .map(entry -> new RankPlayer(entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparing(RankPlayer::name, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    public void beginCreateRank(Player player, int returnPage) {
+        input.start(player, "rank.gui-create-prompt", Map.of(), raw -> {
+            String[] parts = raw.strip().split("\\s+", 2);
+            if (parts.length < 2) {
+                messages.send(player, "rank.invalid-create-input");
+                return false;
+            }
+            String id = parts[0].toLowerCase(java.util.Locale.ROOT);
+            String name = parts[1].strip();
+            if (!RankManager.validId(id)) { messages.send(player, "rank.invalid-id"); return false; }
+            if (!RankManager.validName(name)) { messages.send(player, "rank.invalid-name"); return false; }
+            if (ranks.get(id) != null) { messages.send(player, "rank.exists"); return false; }
+            if (!ranks.create(id, name)) { messages.send(player, "rank.save-failed"); return false; }
+            nameTags.refreshAll();
+            messages.send(player, "rank.created", Map.of("rank", id));
+            openRankEdit(player, id, returnPage);
+            return true;
+        }, () -> openRankList(player, returnPage));
+    }
+
+    public void beginEditRank(Player player, String id, String field, int returnPage) {
+        RankData rank = ranks.get(id);
+        if (rank == null) {
+            messages.send(player, "rank.not-found");
+            openRankList(player, returnPage);
+            return;
+        }
+        String prompt = switch (field) {
+            case "name" -> "rank.name-prompt";
+            case "prefix" -> "rank.prefix-prompt";
+            case "color" -> "rank.color-prompt";
+            default -> throw new IllegalArgumentException("Unknown Rank field: " + field);
+        };
+        input.start(player, prompt, Map.of("rank", rank.id()), raw -> {
+            String value = raw.strip();
+            boolean valid = switch (field) {
+                case "name" -> RankManager.validName(value);
+                case "prefix" -> RankManager.validPrefix(value);
+                case "color" -> RankManager.validColor(value);
+                default -> false;
+            };
+            if (!valid) {
+                messages.send(player, switch (field) {
+                    case "name" -> "rank.invalid-name";
+                    case "prefix" -> "rank.invalid-prefix";
+                    default -> "rank.invalid-color";
+                });
+                return false;
+            }
+            boolean updated = switch (field) {
+                case "name" -> ranks.editName(id, value);
+                case "prefix" -> ranks.editPrefix(id, value);
+                case "color" -> ranks.editColor(id, value);
+                default -> false;
+            };
+            if (!updated) {
+                messages.send(player, "rank.not-found");
+                openRankList(player, returnPage);
+                return true;
+            }
+            nameTags.refreshAll();
+            messages.send(player, "rank.updated", Map.of("rank", id));
+            openRankEdit(player, id, returnPage);
+            return true;
+        }, () -> openRankEdit(player, id, returnPage));
+    }
+
+    public void setDefaultRank(Player player, String id, int returnPage) {
+        if (ranks.setDefault(id)) {
+            nameTags.refreshAll();
+            messages.send(player, "rank.default-set", Map.of("rank", id));
+        } else messages.send(player, "rank.not-found");
+        openRankEdit(player, id, returnPage);
+    }
+
+    public void deleteRank(Player player, String id, int returnPage) {
+        RankData rank = ranks.get(id);
+        if (rank == null) messages.send(player, "rank.not-found");
+        else if (rank.id().equals(ranks.defaultRank().id())) messages.send(player, "rank.cannot-delete-default");
+        else {
+            int count = ranks.delete(id);
+            nameTags.refreshAll();
+            messages.send(player, "rank.deleted", Map.of("rank", id, "count", count));
+        }
+        openRankList(player, returnPage);
+    }
+
+    public void assignRank(Player player, UUID targetId, String rankId, int playerPage) {
+        RankData rank = ranks.get(rankId);
+        String targetName = store.knownPlayers().get(targetId);
+        if (rank == null) messages.send(player, "rank.not-found");
+        else if (targetName == null) messages.send(player, "error.no-player");
+        else {
+            ranks.assign(targetId, rank.id());
+            nameTags.refreshAll();
+            messages.send(player, "rank.assigned", Map.of("rank", rank.id(), "player", targetName));
+        }
+        openRankPlayers(player, playerPage);
+    }
+
+    public record RankPlayer(UUID id, String name) {
     }
 
     public void openPets(Player player, int requestedPage) {
@@ -232,6 +461,7 @@ public final class MenuManager {
         menu.setItem(16, Items.item(Material.BONE, messages.component("menu.admin.pet")));
         menu.setItem(20, Items.item(Material.EXPERIENCE_BOTTLE,
                 messages.component("menu.admin.experimental")));
+        menu.setItem(24, Items.item(Material.NAME_TAG, messages.component("menu.admin.rank")));
         menu.setItem(22, backItem());
         player.openInventory(menu);
     }
@@ -412,6 +642,16 @@ public final class MenuManager {
         meta.setOwningPlayer(player);
         stack.setItemMeta(meta);
         return stack;
+    }
+
+    private ItemStack rankItem(RankData rank, boolean editable) {
+        List<Component> lore = new ArrayList<>();
+        lore.add(messages.component("menu.rank.id", Map.of("id", rank.id())));
+        lore.add(messages.component("menu.rank.color", Map.of("color", rank.color())));
+        lore.add(rank.prefixComponent());
+        if (rank.id().equals(ranks.defaultRank().id())) lore.add(messages.component("menu.rank.is-default"));
+        if (editable) lore.add(messages.component("menu.rank.click-edit"));
+        return Items.item(Material.NAME_TAG, rank.displayComponent(), lore.toArray(Component[]::new));
     }
 
     private Inventory createMenu(MenuHolder holder, int size, String titleKey) {

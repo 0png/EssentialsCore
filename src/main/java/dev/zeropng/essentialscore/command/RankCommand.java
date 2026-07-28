@@ -1,6 +1,7 @@
 package dev.zeropng.essentialscore.command;
 
 import dev.zeropng.essentialscore.localization.MessageService;
+import dev.zeropng.essentialscore.gui.MenuManager;
 import dev.zeropng.essentialscore.rank.RankData;
 import dev.zeropng.essentialscore.rank.RankManager;
 import dev.zeropng.essentialscore.rank.NameTagManager;
@@ -27,12 +28,15 @@ public final class RankCommand implements CommandExecutor, TabCompleter {
     private final DataStore store;
     private final MessageService messages;
     private final NameTagManager nameTags;
+    private final MenuManager menus;
 
-    public RankCommand(RankManager ranks, DataStore store, MessageService messages, NameTagManager nameTags) {
+    public RankCommand(RankManager ranks, DataStore store, MessageService messages, NameTagManager nameTags,
+                       MenuManager menus) {
         this.ranks = ranks;
         this.store = store;
         this.messages = messages;
         this.nameTags = nameTags;
+        this.menus = menus;
     }
 
     @Override
@@ -40,7 +44,7 @@ public final class RankCommand implements CommandExecutor, TabCompleter {
                              @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
             if (!(sender instanceof Player player)) messages.send(sender, "error.players-only");
-            else show(sender, player.getUniqueId());
+            else menus.openRank(player);
             return true;
         }
         String action = args[0].toLowerCase(Locale.ROOT);
@@ -61,7 +65,7 @@ public final class RankCommand implements CommandExecutor, TabCompleter {
 
     private boolean info(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            if (sender instanceof Player player) show(sender, player.getUniqueId());
+            if (sender instanceof Player player) menus.openRank(player);
             else messages.send(sender, "rank.usage");
             return true;
         }
