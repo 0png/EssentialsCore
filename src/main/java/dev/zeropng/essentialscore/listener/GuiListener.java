@@ -76,6 +76,7 @@ public final class GuiListener implements Listener {
             case ADMIN_HOME -> adminHome(player, slot);
             case ADMIN_TPA -> adminTpa(player, slot);
             case ADMIN_PET -> adminPet(player, slot);
+            case ADMIN_EXPERIMENTAL -> adminExperimental(player, slot);
             case ADMIN_WARP -> adminWarp(player, holder.page(), slot);
             case WARP_EDIT -> warpEdit(player, holder, slot);
             case WARP_DELETE -> warpDelete(player, holder, slot);
@@ -243,6 +244,7 @@ public final class GuiListener implements Listener {
             case 12 -> later(() -> menus.openAdminTpa(player));
             case 14 -> later(() -> menus.openAdminWarps(player, 0));
             case 16 -> later(() -> menus.openAdminPet(player));
+            case 20 -> later(() -> menus.openAdminExperimental(player));
             case 22 -> later(() -> menus.openMain(player));
             default -> { }
         }
@@ -276,6 +278,21 @@ public final class GuiListener implements Listener {
             settings.setBoolean("pet.protection-enabled", !settings.petProtection());
             messages.send(player, "admin.saved");
             later(() -> menus.openAdminPet(player));
+        } else if (slot == 22) {
+            later(() -> menus.openAdmin(player));
+        }
+    }
+
+    private void adminExperimental(Player player, int slot) {
+        if (!adminAllowed(player)) return;
+        if (slot == 11) {
+            settings.setBoolean("experimental.universal-lead-enabled", !settings.universalLead());
+            messages.send(player, "admin.saved");
+            later(() -> menus.openAdminExperimental(player));
+        } else if (slot == 15) {
+            settings.setBoolean("experimental.pet-affection-enabled", !settings.petAffection());
+            messages.send(player, "admin.saved");
+            later(() -> menus.openAdminExperimental(player));
         } else if (slot == 22) {
             later(() -> menus.openAdmin(player));
         }

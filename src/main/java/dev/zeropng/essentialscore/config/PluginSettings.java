@@ -30,6 +30,8 @@ public final class PluginSettings {
         config.addDefault("warp.cooldown-seconds", 30);
         config.addDefault("warp.teleport-delay-seconds", 3);
         config.addDefault("pet.protection-enabled", true);
+        config.addDefault("experimental.universal-lead-enabled", false);
+        config.addDefault("experimental.pet-affection-enabled", false);
         config.addDefault("input.timeout-seconds", 60);
         config.options().copyDefaults(true);
     }
@@ -52,6 +54,8 @@ public final class PluginSettings {
     public int warpCooldown() { return bounded("warp.cooldown-seconds", 30, 0, 86400); }
     public int warpDelay() { return bounded("warp.teleport-delay-seconds", 3, 0, 300); }
     public boolean petProtection() { return config.getBoolean("pet.protection-enabled", true); }
+    public boolean universalLead() { return config.getBoolean("experimental.universal-lead-enabled", false); }
+    public boolean petAffection() { return config.getBoolean("experimental.pet-affection-enabled", false); }
     public int inputTimeout() { return bounded("input.timeout-seconds", 60, 10, 600); }
 
     private int bounded(String path, int fallback, int minimum, int maximum) {

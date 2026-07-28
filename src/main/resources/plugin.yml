@@ -34,6 +34,12 @@ commands:
   sit:
     description: Toggle right-click sitting on stairs and slabs.
     usage: /sit
+  lay:
+    description: Lie down at your current location.
+    usage: /lay
+  hat:
+    description: Wear the item in your main hand.
+    usage: /hat
   back:
     description: Return to your most recent death location.
     usage: /back

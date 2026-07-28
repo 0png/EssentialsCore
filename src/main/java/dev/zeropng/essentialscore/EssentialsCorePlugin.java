@@ -2,6 +2,8 @@ package dev.zeropng.essentialscore;
 
 import dev.zeropng.essentialscore.back.DeathBackManager;
 import dev.zeropng.essentialscore.command.BackCommand;
+import dev.zeropng.essentialscore.command.HatCommand;
+import dev.zeropng.essentialscore.command.LayCommand;
 import dev.zeropng.essentialscore.command.TrashCommand;
 import dev.zeropng.essentialscore.command.WarpCommand;
 import dev.zeropng.essentialscore.command.HomeCommand;
@@ -13,9 +15,11 @@ import dev.zeropng.essentialscore.command.TpaCommand;
 import dev.zeropng.essentialscore.config.PluginSettings;
 import dev.zeropng.essentialscore.gui.MenuManager;
 import dev.zeropng.essentialscore.home.HomeManager;
+import dev.zeropng.essentialscore.fun.ExperimentalFeatureListener;
 import dev.zeropng.essentialscore.input.ChatInputManager;
 import dev.zeropng.essentialscore.listener.GuiListener;
 import dev.zeropng.essentialscore.listener.PlayerListener;
+import dev.zeropng.essentialscore.lay.LayManager;
 import dev.zeropng.essentialscore.localization.MessageService;
 import dev.zeropng.essentialscore.pet.PetManager;
 import dev.zeropng.essentialscore.rank.EssentialsPlaceholderExpansion;
@@ -42,6 +46,7 @@ public final class EssentialsCorePlugin extends JavaPlugin {
     private EssentialsPlaceholderExpansion placeholderExpansion;
     private NameTagManager nameTags;
     private SitManager sits;
+    private LayManager lays;
     private TrashManager trash;
 
     @Override
@@ -59,6 +64,7 @@ public final class EssentialsCorePlugin extends JavaPlugin {
         nameTags = new NameTagManager(ranks);
         pets = new PetManager(this, store, settings, messages);
         sits = new SitManager(this, messages);
+        lays = new LayManager(messages);
         trash = new TrashManager(this, messages);
         MenuManager menus = new MenuManager(this, messages, settings, homes, tpa, ranks, pets, input, warps);
 
@@ -67,6 +73,8 @@ public final class EssentialsCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(deathBack, this);
         getServer().getPluginManager().registerEvents(pets, this);
         getServer().getPluginManager().registerEvents(sits, this);
+        getServer().getPluginManager().registerEvents(lays, this);
+        getServer().getPluginManager().registerEvents(new ExperimentalFeatureListener(settings, messages), this);
         getServer().getPluginManager().registerEvents(trash, this);
         getServer().getPluginManager().registerEvents(new RankDisplayListener(ranks), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, menus, homes, tpa, pets, settings,
@@ -85,6 +93,8 @@ public final class EssentialsCorePlugin extends JavaPlugin {
         bind("tpdeny", tpaCommand, tpaCommand);
         bind("pet", new PetCommand(menus, messages), null);
         bind("sit", new SitCommand(sits, messages), null);
+        bind("lay", new LayCommand(lays, sits, messages), null);
+        bind("hat", new HatCommand(messages), null);
         bind("back", new BackCommand(deathBack, messages), null);
         bind("trash", new TrashCommand(trash, messages), null);
         WarpCommand warpCommand = new WarpCommand(warps, menus, messages);
@@ -114,6 +124,7 @@ public final class EssentialsCorePlugin extends JavaPlugin {
         if (input != null) input.cancelAll();
         if (teleports != null) teleports.cancelAll();
         if (sits != null) sits.shutdown();
+        if (lays != null) lays.shutdown();
         if (trash != null) trash.shutdown();
         if (pets != null) pets.flush();
         if (store != null) store.save();

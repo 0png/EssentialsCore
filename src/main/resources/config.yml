@@ -17,5 +17,9 @@ warp:
 pet:
   protection-enabled: true
 
+experimental:
+  universal-lead-enabled: false
+  pet-affection-enabled: false
+
 input:
   timeout-seconds: 60

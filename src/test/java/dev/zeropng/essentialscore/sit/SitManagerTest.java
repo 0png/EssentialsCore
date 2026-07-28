@@ -18,6 +18,9 @@ class SitManagerTest {
         assertEquals(1.0D, SitManager.slabSurfaceHeight(Slab.Type.TOP));
         assertEquals(100.3D, SitManager.seatEntityY(100, 0.5D));
         assertEquals(100.8D, SitManager.seatEntityY(100, 1.0D));
+        assertEquals(0.5D, SitManager.exitSurfaceHeight(false, 0.5D));
+        assertEquals(1.0D, SitManager.exitSurfaceHeight(false, 1.0D));
+        assertEquals(1.0D, SitManager.exitSurfaceHeight(true, 0.5D));
     }
 
     @Test

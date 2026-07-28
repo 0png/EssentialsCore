@@ -112,7 +112,10 @@ public final class SitManager implements Listener {
         }
 
         player.setRotation(surface.yaw(), player.getPitch());
-        Seat seat = new Seat(player.getUniqueId(), stand.getUniqueId(), blockKey);
+        double exitHeight = exitSurfaceHeight(block.getBlockData() instanceof Stairs, surface.height());
+        Location exit = new Location(block.getWorld(), block.getX() + 0.5D,
+                block.getY() + exitHeight, block.getZ() + 0.5D, surface.yaw(), 0.0F);
+        Seat seat = new Seat(player.getUniqueId(), stand.getUniqueId(), blockKey, exit);
         seatsByPlayer.put(player.getUniqueId(), seat);
         occupantsByBlock.put(blockKey, player.getUniqueId());
         messages.send(player, "sit.sat");
@@ -121,30 +124,30 @@ public final class SitManager implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDismount(EntityDismountEvent event) {
         if (!(event.getEntity() instanceof Player player) || !isSeat(event.getDismounted())) return;
-        Bukkit.getScheduler().runTask(plugin, () -> endSeat(player.getUniqueId()));
+        Bukkit.getScheduler().runTask(plugin, () -> endSeat(player.getUniqueId(), true));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         BlockKey blockKey = BlockKey.of(event.getBlock());
         UUID occupant = occupantsByBlock.get(blockKey);
-        if (occupant != null) Bukkit.getScheduler().runTask(plugin, () -> endSeat(occupant));
+        if (occupant != null) Bukkit.getScheduler().runTask(plugin, () -> endSeat(occupant, true));
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        endSeat(event.getPlayer().getUniqueId());
+        endSeat(event.getPlayer().getUniqueId(), false);
         enabledPlayers.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        endSeat(event.getPlayer().getUniqueId());
+        endSeat(event.getPlayer().getUniqueId(), false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
-        endSeat(event.getPlayer().getUniqueId());
+        endSeat(event.getPlayer().getUniqueId(), false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -159,7 +162,7 @@ public final class SitManager implements Listener {
 
     public void shutdown() {
         for (UUID playerId : java.util.List.copyOf(seatsByPlayer.keySet())) {
-            endSeat(playerId);
+            endSeat(playerId, false);
         }
         enabledPlayers.clear();
         removeOrphanedSeats();
@@ -168,7 +171,7 @@ public final class SitManager implements Listener {
     public boolean toggle(Player player) {
         UUID playerId = player.getUniqueId();
         if (enabledPlayers.remove(playerId)) {
-            endSeat(playerId);
+            endSeat(playerId, true);
             messages.send(player, "sit.mode-disabled");
             return false;
         }
@@ -177,7 +180,15 @@ public final class SitManager implements Listener {
         return true;
     }
 
+    public void stand(Player player) {
+        endSeat(player.getUniqueId(), true);
+    }
+
     private void endSeat(UUID playerId) {
+        endSeat(playerId, false);
+    }
+
+    private void endSeat(UUID playerId, boolean placeOnSurface) {
         Seat seat = seatsByPlayer.remove(playerId);
         if (seat == null) return;
 
@@ -186,6 +197,13 @@ public final class SitManager implements Listener {
         if (entity != null) {
             entity.eject();
             entity.remove();
+        }
+        Player player = Bukkit.getPlayer(playerId);
+        if (placeOnSurface && player != null && player.isOnline()) {
+            Location exit = seat.exit().clone();
+            exit.setYaw(player.getYaw());
+            exit.setPitch(player.getPitch());
+            player.teleport(exit, PlayerTeleportEvent.TeleportCause.PLUGIN);
         }
     }
 
@@ -250,6 +268,10 @@ public final class SitManager implements Listener {
         return blockY + surfaceHeight - ARMOR_STAND_OFFSET;
     }
 
+    static double exitSurfaceHeight(boolean stairs, double seatSurfaceHeight) {
+        return stairs ? 1.0D : seatSurfaceHeight;
+    }
+
     static float yawFor(BlockFace face) {
         return switch (face) {
             case SOUTH -> 0.0F;
@@ -263,7 +285,7 @@ public final class SitManager implements Listener {
     record SeatSurface(double height, float yaw) {
     }
 
-    private record Seat(UUID playerId, UUID entityId, BlockKey block) {
+    private record Seat(UUID playerId, UUID entityId, BlockKey block, Location exit) {
     }
 
     private record BlockKey(UUID worldId, int x, int y, int z) {

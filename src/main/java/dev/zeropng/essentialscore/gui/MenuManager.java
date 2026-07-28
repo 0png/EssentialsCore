@@ -78,6 +78,8 @@ public final class MenuManager {
         menu.setItem(slot++, helpItem(Material.COMPASS, "/warp [名稱]", "help.warp"));
         menu.setItem(slot++, helpItem(Material.BONE, "/pet", "help.pet"));
         menu.setItem(slot++, helpItem(Material.OAK_STAIRS, "/sit", "help.sit"));
+        menu.setItem(slot++, helpItem(Material.RED_BED, "/lay", "help.lay"));
+        menu.setItem(slot++, helpItem(Material.LEATHER_HELMET, "/hat", "help.hat"));
         menu.setItem(slot++, helpItem(Material.RECOVERY_COMPASS, "/back", "help.back"));
         menu.setItem(slot++, helpItem(Material.LAVA_BUCKET, "/trash", "help.trash"));
         menu.setItem(slot++, helpItem(Material.NAME_TAG, "/rank", "help.rank"));
@@ -228,6 +230,8 @@ public final class MenuManager {
         menu.setItem(12, Items.item(Material.ENDER_PEARL, messages.component("menu.admin.tpa")));
         menu.setItem(14, Items.item(Material.COMPASS, messages.component("menu.admin.warp")));
         menu.setItem(16, Items.item(Material.BONE, messages.component("menu.admin.pet")));
+        menu.setItem(20, Items.item(Material.EXPERIENCE_BOTTLE,
+                messages.component("menu.admin.experimental")));
         menu.setItem(22, backItem());
         player.openInventory(menu);
     }
@@ -255,6 +259,19 @@ public final class MenuManager {
         menu.setItem(13, Items.item(settings.petProtection() ? Material.LIME_DYE : Material.GRAY_DYE,
                 messages.component("admin.pet-protection"),
                 messages.component(settings.petProtection() ? "admin.enabled" : "admin.disabled")));
+        menu.setItem(22, backItem());
+        player.openInventory(menu);
+    }
+
+    public void openAdminExperimental(Player player) {
+        Inventory menu = createMenu(new MenuHolder(MenuType.ADMIN_EXPERIMENTAL), 27,
+                "menu.admin.experimental-title");
+        menu.setItem(11, Items.item(settings.universalLead() ? Material.LIME_DYE : Material.GRAY_DYE,
+                messages.component("admin.experimental-universal-lead"),
+                messages.component(settings.universalLead() ? "admin.enabled" : "admin.disabled")));
+        menu.setItem(15, Items.item(settings.petAffection() ? Material.LIME_DYE : Material.GRAY_DYE,
+                messages.component("admin.experimental-pet-affection"),
+                messages.component(settings.petAffection() ? "admin.enabled" : "admin.disabled")));
         menu.setItem(22, backItem());
         player.openInventory(menu);
     }
@@ -400,6 +417,8 @@ public final class MenuManager {
     private Inventory createMenu(MenuHolder holder, int size, String titleKey) {
         Inventory inventory = Bukkit.createInventory(holder, size, messages.component(titleKey));
         holder.attach(inventory);
+        ItemStack filler = Items.item(Material.GRAY_STAINED_GLASS_PANE, Component.empty());
+        for (int slot = 0; slot < size; slot++) inventory.setItem(slot, filler);
         return inventory;
     }
 
