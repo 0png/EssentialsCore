@@ -1,0 +1,21 @@
+language: zh-TW
+
+home:
+  max-homes: 3
+  cooldown-seconds: 30
+  teleport-delay-seconds: 3
+
+tpa:
+  request-expiry-seconds: 60
+  send-cooldown-seconds: 30
+  teleport-delay-seconds: 3
+
+warp:
+  cooldown-seconds: 30
+  teleport-delay-seconds: 3
+
+pet:
+  protection-enabled: true
+
+input:
+  timeout-seconds: 60

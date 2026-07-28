@@ -1,0 +1,22 @@
+default-rank: member
+ranks:
+  owner:
+    display-name: Owner
+    prefix: '<dark_red>[Owner]</dark_red> '
+    color: '#AA0000'
+  admin:
+    display-name: Admin
+    prefix: '<red>[Admin]</red> '
+    color: '#FF5555'
+  moderator:
+    display-name: Moderator
+    prefix: '<gold>[Moderator]</gold> '
+    color: '#FFAA00'
+  vip:
+    display-name: VIP
+    prefix: '<aqua>[VIP]</aqua> '
+    color: '#55FFFF'
+  member:
+    display-name: Member
+    prefix: '<gray>[Member]</gray> '
+    color: '#AAAAAA'

@@ -1,0 +1,48 @@
+name: EssentialsCore
+version: '${version}'
+main: dev.zeropng.essentialscore.EssentialsCorePlugin
+description: Lightweight GUI-first survival essentials for Paper.
+author: 0png
+website: https://www.0png.dev
+api-version: '26.2'
+softdepend: [PlaceholderAPI]
+commands:
+  ec:
+    description: Open the EssentialsCore menu.
+    usage: /ec [admin|help]
+  home:
+    description: Open the Home menu.
+    usage: /home
+  sethome:
+    description: Create a Home at your current location.
+    usage: /sethome
+  tpa:
+    description: Request to teleport to another player.
+    usage: /tpa
+  tpahere:
+    description: Invite another player to teleport to you.
+    usage: /tpahere
+  tpaccept:
+    description: Accept a teleport request.
+    usage: /tpaccept [player]
+  tpdeny:
+    description: Deny a teleport request.
+    usage: /tpdeny [player]
+  pet:
+    description: Open the pet recall menu.
+    usage: /pet
+  sit:
+    description: Toggle right-click sitting on stairs and slabs.
+    usage: /sit
+  back:
+    description: Return to your most recent death location.
+    usage: /back
+  trash:
+    description: Open a safe disposal inventory.
+    usage: /trash
+  warp:
+    description: Open or use public server Warps.
+    usage: /warp [name|admin]
+  rank:
+    description: View or manage ranks.
+    usage: /rank [info|list|create|edit|set|default|delete]
