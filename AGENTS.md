@@ -7,7 +7,7 @@
 
 ## Project
 - EssentialsCore is a lightweight, GUI-first survival plugin for Paper 26.2.
-- Use Java 25, Gradle Kotlin DSL, and `paper-api:26.2.build.84-stable`.
+- Use Java 25, Gradle Kotlin DSL, and `paper-api:26.2.build.87-stable`.
 - The base package is `dev.zeropng.essentialscore`.
 - PlaceholderAPI is optional; never make the plugin fail when it is absent.
 - Do not add RTP unless the user explicitly restores it to scope.

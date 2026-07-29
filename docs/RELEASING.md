@@ -17,8 +17,8 @@ token.
 
 Protect `main`, require pull requests, prefer squash merging, and require these checks:
 
-- `CI / Build and test`
-- `PR title / Validate title`
+- `Build and test`
+- `Validate title`
 
 ## Development flow
 
