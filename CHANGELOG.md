@@ -3,6 +3,13 @@
 All notable changes to EssentialsCore are documented in this file. Future entries are generated
 automatically from Conventional Commits by Release Please.
 
+## [1.4.1](https://github.com/0png/EssentialsCore/compare/v1.4.0...v1.4.1) (2026-07-29)
+
+
+### Continuous Integration
+
+* add automated build and release pipeline ([20b8af0](https://github.com/0png/EssentialsCore/commit/20b8af0ae1df441fa515e8045f836c7cb8946957))
+
 ## [1.4.0] - 2026-07-28
 
 ### Added
