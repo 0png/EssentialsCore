@@ -13,12 +13,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.2.build.84-stable")
-    compileOnly("me.clip:placeholderapi:2.12.2")
+    compileOnly("io.papermc.paper:paper-api:26.2.build.87-stable")
+    compileOnly("me.clip:placeholderapi:2.12.3")
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.2")
-    testImplementation("io.papermc.paper:paper-api:26.2.build.84-stable")
+    testImplementation("io.papermc.paper:paper-api:26.2.build.87-stable")
 }
 
 java {
