@@ -1,5 +1,8 @@
 # EssentialsCore
 
+[![CI](https://github.com/0png/EssentialsCore/actions/workflows/ci.yml/badge.svg)](https://github.com/0png/EssentialsCore/actions/workflows/ci.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/0png/EssentialsCore)](https://github.com/0png/EssentialsCore/releases/latest)
+
 EssentialsCore 是為 Paper 26.2 製作的輕量、GUI 優先生存便利插件。
 
 ## 需求
@@ -18,8 +21,18 @@ $env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot'
 .\gradlew.bat clean build
 ```
 
-成品位於 `build/libs/EssentialsCore-1.4.0.jar`。將 JAR 放進 Paper
+成品位於 `build/libs/EssentialsCore-<版本>.jar`。將 JAR 放進 Paper
 伺服器的 `plugins` 資料夾並重新啟動伺服器。
+
+## 開發與發布
+
+- Pull Request 會自動執行 Java 25 建置、測試、Gradle Wrapper 驗證與 JAR 封裝。
+- PR 標題使用 Conventional Commits，例如 `feat: add afk support` 或 `fix: correct home teleport`。
+- 合併功能 PR 後，Release Please 會持續更新 Release PR、版本與 `CHANGELOG.md`。
+- 合併 Release PR 後會建立 GitHub Release，並上傳正式 JAR 與 SHA-256 校驗檔。
+
+完整操作與首次設定請參閱 [`docs/RELEASING.md`](docs/RELEASING.md)，歷次變更請參閱
+[`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 玩家指令
 

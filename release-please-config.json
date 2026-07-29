@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "include-v-in-tag": true,
+  "include-component-in-tag": false,
+  "bootstrap-sha": "5f76b0d7a2a725eba0e06cd3ce6abc8868841e13",
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "perf", "section": "Performance" },
+    { "type": "refactor", "section": "Code Refactoring" },
+    { "type": "docs", "section": "Documentation" },
+    { "type": "build", "section": "Build System" },
+    { "type": "ci", "section": "Continuous Integration" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "test", "section": "Tests", "hidden": true },
+    { "type": "chore", "section": "Miscellaneous", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "package-name": "EssentialsCore"
+    }
+  }
+}

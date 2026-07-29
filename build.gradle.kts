@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "dev.zeropng"
-version = "1.4.0"
+version = providers.fileContents(layout.projectDirectory.file("version.txt")).asText.get().trim()
 val pluginVersion = version.toString()
 
 repositories {
@@ -39,8 +39,22 @@ tasks.processResources {
 
 tasks.test {
     useJUnitPlatform()
+    systemProperty("pluginVersion", pluginVersion)
 }
 
 tasks.jar {
     archiveBaseName.set("EssentialsCore")
+}
+
+tasks.register("printVersion") {
+    group = "help"
+    description = "Prints the project version used for release automation."
+    doLast {
+        println(pluginVersion)
+    }
+}
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
 }
